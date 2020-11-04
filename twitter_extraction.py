@@ -1,4 +1,5 @@
 import tweepy
+import csv
 
 key = (
     ("API", "BmC1Bs84AS2IYha9InGMcAsou"),
@@ -12,8 +13,9 @@ auth.set_access_token(key[2][1], key[3][1])
 api = tweepy.API(auth)
 
 def getTwitter(query, count):
-    for x in api.search(q=query, lang="id", count=count):
+    for x in tweepy.Cursor(api.search, q=query, lang="id").items(count):
         yield x
 
-for x in getTwitter("COVID-19", 10):
-    print(x.text)
+with open("data/covid-19-dataset.csv","w") as file:
+    for line in getTwitter(["covid-19","pakai masker", "covid"], 30):
+        file.write(line.text) 
