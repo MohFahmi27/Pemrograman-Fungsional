@@ -1,5 +1,7 @@
 import tweepy
 import csv
+import re
+from nltk.corpus import stopwords
 
 key = (
     ("API", "BmC1Bs84AS2IYha9InGMcAsou"),
@@ -12,10 +14,47 @@ auth = tweepy.OAuthHandler(key[0][1], key[1][1])
 auth.set_access_token(key[2][1], key[3][1])
 api = tweepy.API(auth)
 
-def getTwitter(query, count):
-    for x in tweepy.Cursor(api.search, q=query, lang="id").items(count):
+# FUNCTION UNTUK MENGAMBIL DATA TWITTER
+def getTwitter(query, count:int) -> object:
+    for x in api.user_timeline(screen_name="irfanhawari19", query=query, count=count, include_rts=False, tweet_mode="extended"):
         yield x
 
-with open("data/covid-19-dataset.csv","w") as file:
-    for line in getTwitter(["covid-19","pakai masker", "covid"], 30):
-        file.write(line.text) 
+# clean Tweet ngambil satu tweet kemudian dia akan menghasilkan tweet
+# yang telah bersih dari symbol dan kata yang tidak penting (preprocessing)
+def cleanTweet(twitterResult:str) -> str:
+    tweet = twitterResult.lower()
+
+    # after tweepy preprocessing the colon left remain after removing mentions
+    # or RT sign in the beginning of the tweet
+    tweet = re.sub(r':', '', tweet)
+    tweet = re.sub(r'‚Ä¶', '', tweet)
+
+    # replace consecutive non-ASCII characters with a space
+    tweet = re.sub(r'[^\x00-\x7F]+',' ', tweet)
+
+    # remove punctuation manually
+    tweet = re.sub('[^a-zA-Z]', ' ', tweet)    
+    
+    # remove tags
+    tweet= re.sub("&lt;/?.*?&gt;","&lt;&gt;",tweet)
+    
+    # remove digits and special chars
+    tweet= re.sub("(\\d|\\W)+"," ",tweet)
+    
+    # remove other symbol from tweet
+    tweet = re.sub(r'â', '', tweet)
+    tweet = re.sub(r'€', '', tweet)
+    tweet = re.sub(r'¦', '', tweet)
+    tweet = re.sub('covid','', tweet)
+
+    # MENGHILANGKAN KATA STOPWORDS
+    # library nltk.stopwords ini bakalan menghapus kata-kata yang tidak diperlukan
+    tweet = " ".join(filter(lambda x: True if x not in stopwords.words('indonesian') else False, [x for x in tweet.split()]))
+    yield tweet
+
+# CONTEXT MANAGER UNTUK MEMBUAT FILE DATASET
+with open("data/datasetSource/covid-19-dataset-irfan.csv","w") as file:
+    writer = csv.DictWriter(file, ["create at", "username", "tweet"])
+    writer.writeheader()
+    for line in getTwitter("covid", 10):
+        writer.writerow({"create at": line.created_at,"username":line.user.screen_name, "tweet": next(cleanTweet(line.full_text))})
