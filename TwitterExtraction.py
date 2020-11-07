@@ -16,7 +16,7 @@ api = tweepy.API(auth)
 
 # FUNCTION UNTUK MENGAMBIL DATA TWITTER
 def getTwitter(query, count:int) -> object:
-    for x in api.user_timeline(screen_name="irfanhawari19", query=query, count=count, include_rts=False, tweet_mode="extended"):
+    for x in api.search(q=query, include_rts=False, lang="id", tweet_mode="extended", count=count):
         yield x
 
 # clean Tweet ngambil satu tweet kemudian dia akan menghasilkan tweet
@@ -45,16 +45,14 @@ def cleanTweet(twitterResult:str) -> str:
     tweet = re.sub(r'â', '', tweet)
     tweet = re.sub(r'€', '', tweet)
     tweet = re.sub(r'¦', '', tweet)
-    tweet = re.sub('covid','', tweet)
 
     # MENGHILANGKAN KATA STOPWORDS
     # library nltk.stopwords ini bakalan menghapus kata-kata yang tidak diperlukan
-    tweet = " ".join(filter(lambda x: True if x not in stopwords.words('indonesian') else False, [x for x in tweet.split()]))
-    yield tweet
+    yield " ".join(filter(lambda x: True if x not in stopwords.words('indonesian') else False, [x for x in tweet.split()]))
 
 # CONTEXT MANAGER UNTUK MEMBUAT FILE DATASET
-with open("data/datasetSource/covid-19-dataset-irfan.csv","w") as file:
+with open("data/datasetSource/covid-19-dataset-testing-2.csv","w") as file:
     writer = csv.DictWriter(file, ["create at", "username", "tweet"])
     writer.writeheader()
-    for line in getTwitter("covid", 10):
+    for line in getTwitter("covid", 500):
         writer.writerow({"create at": line.created_at,"username":line.user.screen_name, "tweet": next(cleanTweet(line.full_text))})
