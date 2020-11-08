@@ -51,8 +51,8 @@ def cleanTweet(twitterResult:str) -> str:
     yield " ".join(filter(lambda x: True if x not in stopwords.words('indonesian') else False, [x for x in tweet.split()]))
 
 # CONTEXT MANAGER UNTUK MEMBUAT FILE DATASET
-with open("data/datasetSource/covid-19-dataset-testing-2.csv","w") as file:
+with open("data/datasetSource/covid-19-dataset-dpr.csv","w") as file:
     writer = csv.DictWriter(file, ["create at", "username", "tweet"])
     writer.writeheader()
-    for line in getTwitter("covid", 500):
+    for line in getTwitter("dpr", 1000):
         writer.writerow({"create at": line.created_at,"username":line.user.screen_name, "tweet": next(cleanTweet(line.full_text))})
