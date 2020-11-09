@@ -24,6 +24,9 @@ def getTwitter(query, count:int) -> object:
 def cleanTweet(twitterResult:str) -> str:
     tweet = twitterResult.lower()
 
+    # Remove semua link yang ada di tweet
+    tweet = re.sub(r'http\S+', '', tweet)
+    
     # after tweepy preprocessing the colon left remain after removing mentions
     # or RT sign in the beginning of the tweet
     tweet = re.sub(r':', '', tweet)
@@ -50,9 +53,16 @@ def cleanTweet(twitterResult:str) -> str:
     # library nltk.stopwords ini bakalan menghapus kata-kata yang tidak diperlukan
     yield " ".join(filter(lambda x: True if x not in stopwords.words('indonesian') else False, [x for x in tweet.split()]))
 
-# CONTEXT MANAGER UNTUK MEMBUAT FILE DATASET
-with open("data/datasetSource/covid-19-dataset-dpr.csv","w") as file:
-    writer = csv.DictWriter(file, ["create at", "username", "tweet"])
-    writer.writeheader()
-    for line in getTwitter("dpr", 1000):
-        writer.writerow({"create at": line.created_at,"username":line.user.screen_name, "tweet": next(cleanTweet(line.full_text))})
+def extractTwitter(nameFile:str, query:str, banyakTweet:int) -> csv:
+    # CONTEXT MANAGER UNTUK MEMBUAT FILE DATASET
+    try:
+        with open("data/datasetSource/tweet-dataset-{}.csv".format(nameFile),"w") as file:
+            writer = csv.DictWriter(file, ["create at", "username", "tweet"])
+            writer.writeheader()
+            for line in getTwitter(query, banyakTweet):
+                writer.writerow({"create at": line.created_at,"username":line.user.screen_name, "tweet": next(cleanTweet(line.full_text))})    
+    except Exception as e:
+        print(e)
+    
+if __name__ == "__main__":
+    extractTwitter("gabungan", "COVID19 OR COVID-19 OR pakai masker OR uu OR ciptaker OR dpr OR viral", 1000)
