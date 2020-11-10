@@ -14,11 +14,6 @@ auth = tweepy.OAuthHandler(key[0][1], key[1][1])
 auth.set_access_token(key[2][1], key[3][1])
 api = tweepy.API(auth)
 
-# FUNCTION UNTUK MENGAMBIL DATA TWITTER
-def getTwitter(query, count:int) -> object:
-    for x in api.search(q=query, include_rts=False, lang="id", tweet_mode="extended", count=count):
-        yield x
-
 # clean Tweet ngambil satu tweet kemudian dia akan menghasilkan tweet
 # yang telah bersih dari symbol dan kata yang tidak penting (preprocessing)
 def cleanTweet(twitterResult:str) -> str:
@@ -59,10 +54,10 @@ def extractTwitter(nameFile:str, query:str, banyakTweet:int) -> csv:
         with open("data/datasetSource/tweet-dataset-{}.csv".format(nameFile),"w") as file:
             writer = csv.DictWriter(file, ["create at", "username", "tweet"])
             writer.writeheader()
-            for line in getTwitter(query, banyakTweet):
+            for line in (x for x in api.search(q=query, include_rts=False, lang="id", tweet_mode="extended", count=banyakTweet)):
                 writer.writerow({"create at": line.created_at,"username":line.user.screen_name, "tweet": next(cleanTweet(line.full_text))})    
     except Exception as e:
         print(e)
     
 if __name__ == "__main__":
-    extractTwitter("gabungan", "COVID19 OR COVID-19 OR pakai masker OR uu OR ciptaker OR dpr OR viral", 1000)
+    extractTwitter("test", "COVID19 OR COVID-19 OR pakai masker OR uu OR ciptaker OR dpr OR viral", 10000)

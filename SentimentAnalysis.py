@@ -5,23 +5,13 @@ import matplotlib.pyplot as plt
 
 sentimentDataset = pandas.read_csv('data/datasetAnalysis/lexicon-word-dataset.csv')
 sentimentWordList = sentimentDataset['word'].to_list()
-sentimentWeightList = [int(x) for x in sentimentDataset['weight']]
-
-def removeWord(tweet:str) -> str:
-    tweetList = [i for i in tweet.split()]
-    yield " ".join(filter(lambda x: False if x in ["covid", "dpr", "pemerintah", "corona", "covid19"] else True, tweetList))
-    
-def sentimentWeightFinder(sentimentWord:str) -> int:
-    yield sentimentWeightList[sentimentWordList.index(sentimentWord)]  
+sentimentWeightList = sentimentDataset['weight'].to_list()
 
 def sentimentWeightCalc(tweetSentence:str) -> int:
-    sentimentWeight = 0
-    for i in tweetSentence.split():
-        if i in sentimentWordList:
-            sentimentWeight += next(sentimentWeightFinder(i))
-        else:
-            continue
-    yield sentimentWeight
+    tweetSentence = " ".join(filter(lambda x: False if x in ["covid", "dpr", "pemerintah", "corona", "covid19"] else True, [i for i in tweetSentence.split()]))
+    tweetSentence = " ".join(filter(lambda x: True if x in sentimentWordList else False, [i for i in tweetSentence.split()]))
+    sentimentWeight = list(map(lambda x: sentimentWeightList[sentimentWordList.index(x)], [x for x in tweetSentence.split()]))
+    yield sum(sentimentWeight)
 
 # Function ini dapat melakukan sentiment analysis untuk dataset yang telah 
 # ditentukan sebelumnya 
@@ -29,12 +19,11 @@ def sentimentWeightCalc(tweetSentence:str) -> int:
 def sentimentCSV(fileName:str) -> csv:    
     # nama file dapat diubah asalkan sesuai dengan format yang ada
     tweetDataset = pandas.read_csv('data/datasetSource/tweet-dataset-{}.csv'.format(fileName))
-    tweetDatasetListClean = zip(tweetDataset['tweet'].to_list(), [next(removeWord(x)) for x in [str(x) for x in tweetDataset['tweet'].to_list()]])
 
     with open('data/datasetSource/sentimentAnalysis-result-{}.csv'.format(fileName),'w') as file:
         writer = csv.DictWriter(file, ["original_tweet", "sentiment_result"])
         writer.writeheader()
-        for ori, line in tweetDatasetListClean:
+        for ori, line in zip(tweetDataset['tweet'].to_list(), [x for x in [str(x) for x in tweetDataset['tweet'].to_list()]]):
             writer.writerow({"original_tweet": ori,"sentiment_result": next(sentimentWeightCalc(line))})
 
 # function ini digunakan untuk melihat distribusi dari sentiment analysis 
@@ -61,7 +50,7 @@ def sentimentPlotSingleFile(fileName:str) -> plt:
     try:
         datasetResult = pandas.read_csv('data/datasetSource/sentimentAnalysis-result-{}.csv'.format(fileName))
         seaborn.kdeplot(datasetResult['sentiment_result'], color='k', shade=True)
-        plt.title('Sebaran Data Sentiment pada {}'.format(fileName))
+        plt.title('Sebaran Data Sentiment {}'.format(fileName))
         plt.xlabel('sentiment')
         plt.show()
     except Exception as e:
@@ -69,7 +58,7 @@ def sentimentPlotSingleFile(fileName:str) -> plt:
     
 if __name__ == "__main__":
     # nama file untuk hasil sentiment analysis
-    sentimentCSV("nama_file")
+    sentimentCSV("test")
 
     # grafik untuk distribusi sentiment
-    sentimentPlotSingleFile("nama_file")
+    # sentimentPlotSingleFile("test")
