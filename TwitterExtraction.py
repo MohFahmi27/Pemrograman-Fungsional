@@ -60,4 +60,4 @@ def extractTwitter(nameFile:str, query:str, banyakTweet:int) -> csv:
         print(e)
     
 if __name__ == "__main__":
-    extractTwitter("test", "COVID19 OR COVID-19 OR pakai masker OR uu OR ciptaker OR dpr OR viral", 10000)
+    extractTwitter("nama_file", "COVID19 OR COVID-19 OR pakai masker OR uu OR ciptaker OR dpr OR viral", 10000)

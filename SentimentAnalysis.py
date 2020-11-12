@@ -58,7 +58,7 @@ def sentimentPlotSingleFile(fileName:str) -> plt:
     
 if __name__ == "__main__":
     # nama file untuk hasil sentiment analysis
-    sentimentCSV("test")
+    sentimentCSV("nama_file")
 
     # grafik untuk distribusi sentiment
-    # sentimentPlotSingleFile("test")
+    sentimentPlotSingleFile("nama_file")
