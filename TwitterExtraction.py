@@ -38,6 +38,7 @@ def cleanTweet(twitterResult:str) -> str:
     
     # remove digits and special chars
     tweet= re.sub("(\\d|\\W)+"," ",tweet)
+    tweet = re.sub("rt", "",tweet)
     
     # remove other symbol from tweet
     tweet = re.sub(r'â', '', tweet)

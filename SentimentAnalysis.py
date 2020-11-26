@@ -8,9 +8,8 @@ sentimentWordList = sentimentDataset['word'].to_list()
 sentimentWeightList = sentimentDataset['weight'].to_list()
 
 def sentimentWeightCalc(tweetSentence:str) -> int:
-    tweetSentence = filter(lambda x: False if x in ["covid", "dpr", "pemerintah", "corona", "covid19"] else True, [i for i in tweetSentence.split()])
-    tweetSentence = filter(lambda x: True if x in sentimentWordList else False, [i for i in tweetSentence])
-    sentimentWeight = list(map(lambda x: sentimentWeightList[sentimentWordList.index(x)], [x for x in tweetSentence]))
+    tweetSentence = filter(lambda x: True if x in sentimentWordList else False, (i for i in tweetSentence.split()))
+    sentimentWeight = list(map(lambda x: sentimentWeightList[sentimentWordList.index(x)], (x for x in tweetSentence)))
     yield sum(sentimentWeight)
 
 # Function ini dapat melakukan sentiment analysis untuk dataset yang telah 
