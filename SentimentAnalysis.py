@@ -1,7 +1,9 @@
 import pandas
 import csv
 import seaborn
+import re
 import matplotlib.pyplot as plt
+from nltk.corpus import stopwords
 
 sentimentDataset = pandas.read_csv('data/datasetAnalysis/lexicon-word-dataset.csv')
 sentimentWordList = sentimentDataset['word'].to_list()
