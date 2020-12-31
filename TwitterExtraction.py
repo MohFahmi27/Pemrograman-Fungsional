@@ -20,16 +20,16 @@ def cleanTweet(twitterResult:str) -> str:
     twitterResult = re.sub("(@[A-Za-z0-9]+)|(#[A-Za-z0-9]+)|(r[^\x00-\x7F]+)|([^0-9A-Za-z])",' ', twitterResult)
     twitterResult = re.sub("(:)|(r‚Ä¶)|(rt|RT)|([0-9])", '', twitterResult)
     twitterResult = re.sub("&lt;/?.*?&gt;","&lt;&gt;", twitterResult)    
-    yield re.sub("( +)", ' ', twitterResult.lstrip(' '))
+    return re.sub("( +)", ' ', twitterResult.lstrip(' '))
 
 def extractTwitter(nameFile:str, query:str, banyakTweet:int) -> csv:
-    filePath = "data/datasetSource/tweet-dataset-{}.csv".format(nameFile)
+    filePath = f"data/datasetSource/tweet-dataset-{nameFile}.csv"
     with open(filePath, "a+" if os.path.exists(filePath) else "w") as file:
         writer_csv = csv.DictWriter(file, ["create at", "username", "tweet"])
         True if file.mode == "a+" else writer_csv.writeheader()
         for line in getData(query, banyakTweet):
             writer_csv.writerow({"create at": line.created_at,"username":line.user.screen_name,\
-                    "tweet": next(cleanTweet(line.full_text))})    
+                    "tweet": cleanTweet(line.full_text)})    
     
 if __name__ == "__main__":
-    extractTwitter("covid", "COVID19 OR COVID-19 OR vaksin", 100)
+    extractTwitter("covid", "COVID19 OR COVID-19 OR vaksin", 1000)
