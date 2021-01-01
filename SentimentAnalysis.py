@@ -1,18 +1,55 @@
 import pandas
 import csv
 import seaborn
-import re
 import matplotlib.pyplot as plt
+import itertools
+import functools
+import operator
 from nltk.corpus import stopwords
 
 sentimentDataset = pandas.read_csv('data/datasetAnalysis/lexicon-word-dataset.csv')
-sentimentWordList = sentimentDataset['word'].to_list()
-sentimentWeightList = sentimentDataset['weight'].to_list()
+kataPenguatFile = pandas.read_csv("data/datasetAnalysis/kata-keterangan-penguat.csv")
+negasi = ["tidak", "tidaklah", "bukan", "bukanlah", "bukannya","ngga", "nggak", "enggak", "nggaknya", 
+    "kagak", "gak"]
+sentimentWord = sentimentDataset['word'].to_list()
+sentimentWeight = sentimentDataset['weight'].to_list()
 
-def sentimentWeightCalc(tweetSentence:str) -> int:
-    tweetSentence = filter(lambda x: True if x in sentimentWordList else False, (i for i in tweetSentence.split()))
-    sentimentWeight = list(map(lambda x: sentimentWeightList[sentimentWordList.index(x)], (x for x in tweetSentence)))
-    yield sum(sentimentWeight)
+preprocessingTweet = lambda wordTweets : itertools.filterfalse(lambda x: 
+    True if (x in stopwords.words('indonesian') 
+        and x not in (x for x in kataPenguatFile['words']) 
+            and x not in negasi)         
+        else False, wordTweets.split()) # -> itertools.filterfalse()
+
+def findWeightSentiment(wordTweet:str) -> int:
+    return int(sentimentWeight[sentimentWord.index(wordTweet)])\
+         if wordTweet in (x for x in sentimentDataset['word']) else 0
+
+def findWeightInf(wordTweet:str) -> float:
+    infWeight = kataPenguatFile['weight'].to_list()
+    infWord = kataPenguatFile['words'].to_list()
+    return infWeight[infWord.index(wordTweet)]\
+         if wordTweet in (x for x in kataPenguatFile['words']) else 0
+
+def sentimentFinder(wordTweets:str) -> list:
+    wordTweet = list(preprocessingTweet(wordTweets))
+    sentimentWeightList = []
+    sentimentInfList = []
+    for x in wordTweet:
+        if (wordTweet[wordTweet.index(x) - 1]) in negasi:
+            sentimentWeightList.append(-1*findWeightSentiment(x))
+        elif x in (x for x in kataPenguatFile['words']):
+            sentimentInfList.append(findWeightInf(x))    
+        else: 
+            sentimentWeightList.append(findWeightSentiment(x))        
+    return sentimentWeightList, sentimentInfList
+
+def sentimentCalc(*args) -> float:
+    sentimentWeight = args[0][0]
+    sentimentInf = args[0][1]
+    if len(sentimentWeight) >= 1 and len(sentimentInf) == 0:
+        yield sum(sentimentWeight)
+    elif len(sentimentWeight) >= 1 and len(sentimentInf) >= 1:
+        yield functools.reduce(operator.mul, list(map(lambda x : x + 1, sentimentInf))) * sum(sentimentWeight)
 
 # Function ini dapat melakukan sentiment analysis untuk dataset yang telah 
 # ditentukan sebelumnya 
@@ -27,7 +64,7 @@ def sentimentCSV(fileName:str) -> csv:
         writer = csv.DictWriter(file, ["original_tweet", "sentiment_result"])
         writer.writeheader()
         for ori, line in zip(tweetDataset['tweet'].to_list(), [x for x in [str(x) for x in tweetDataset['tweet'].to_list()]]):
-            writer.writerow({"original_tweet": ori,"sentiment_result": next(sentimentWeightCalc(line))})
+            writer.writerow({"original_tweet": ori,"sentiment_result": line})
 
 # function ini digunakan untuk melihat distribusi dari sentiment analysis 
 # yang sudah kita lakukan
