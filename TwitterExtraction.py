@@ -3,6 +3,7 @@ import csv
 from collections import namedtuple
 import os
 import re
+import concurrent.futures
 
 key = namedtuple('key', ['API', 'API_KEY_SECRET', 'ACCESS_TOKEN', 'ACCESS_TOKEN_SECRET'])
 API = key('BmC1Bs84AS2IYha9InGMcAsou', 'KmTkztacSjHVLq1EwXWzwMCslPvjEs2tEO9Jm3XBUN9tvB6sm2',\
@@ -11,25 +12,22 @@ API = key('BmC1Bs84AS2IYha9InGMcAsou', 'KmTkztacSjHVLq1EwXWzwMCslPvjEs2tEO9Jm3XB
 auth = tweepy.OAuthHandler(API.API, API.API_KEY_SECRET)
 auth.set_access_token(API.ACCESS_TOKEN, API.ACCESS_TOKEN_SECRET)
 
-getData = lambda query, banyakTweet: (x for x in tweepy.API(auth)\
+cleanUrl = lambda twitterResult: re.sub(r'http\S+', '', twitterResult.lower())
+cleanTwitterSym = lambda twitterResult: re.sub("(@[A-Za-z0-9]+)|(#[A-Za-z0-9]+)|(r[^\x00-\x7F]+)|([^0-9A-Za-z])",' ', cleanUrl(twitterResult))
+cleanDigitSym = lambda twitterResult: re.sub("(:)|(r‚Ä¶)|(rt|RT)|([0-9])", '', cleanTwitterSym(twitterResult))
+cleanTags = lambda twitterResult: re.sub("&lt;/?.*?&gt;","&lt;&gt;", cleanDigitSym(twitterResult))
+cleanTweet = lambda twitterResult: re.sub("( +)", ' ', cleanTags(twitterResult).lstrip(' '))
+
+getData = lambda query, banyakTweet: (dict(created_at=x.created_at, username=x.user.screen_name, tweet=cleanTweet(x.full_text)) for x in tweepy.API(auth)\
         .search(q=query, include_rts=False, lang="id", tweet_mode="extended", count=banyakTweet))
 
-def cleanTweet(twitterResult:str) -> str:
-    # remove link & tag user & non-ASCII & punctuation & hashtag
-    twitterResult = re.sub(r'http\S+', '', twitterResult.lower())
-    twitterResult = re.sub("(@[A-Za-z0-9]+)|(#[A-Za-z0-9]+)|(r[^\x00-\x7F]+)|([^0-9A-Za-z])",' ', twitterResult)
-    twitterResult = re.sub("(:)|(r‚Ä¶)|(rt|RT)|([0-9])", '', twitterResult)
-    twitterResult = re.sub("&lt;/?.*?&gt;","&lt;&gt;", twitterResult)    
-    return re.sub("( +)", ' ', twitterResult.lstrip(' '))
-
 def extractTwitter(nameFile:str, query:str, banyakTweet:int) -> csv:
-    filePath = f"data/datasetSource/tweet-dataset-{nameFile}.csv"
+    filePath = f"data/datasetSource/tweet-dataset-{nameFile}.csv"  
     with open(filePath, "a+" if os.path.exists(filePath) else "w") as file:
-        writer_csv = csv.DictWriter(file, ["create at", "username", "tweet"])
+        writer_csv = csv.DictWriter(file, ["created_at", "username", "tweet"])
         True if file.mode == "a+" else writer_csv.writeheader()
-        for line in getData(query, banyakTweet):
-            writer_csv.writerow({"create at": line.created_at,"username":line.user.screen_name,\
-                    "tweet": cleanTweet(line.full_text)})    
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            executor.map(writer_csv.writerow, getData(query, banyakTweet))
     
 if __name__ == "__main__":
-    extractTwitter("covid", "COVID19 OR COVID-19 OR vaksin", 1000)
+    extractTwitter("test3", "COVID19 OR COVID-19 OR vaksin", 1000)

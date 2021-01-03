@@ -23,12 +23,14 @@ def findWeightSentiment(wordTweet:str) -> int:
     for x, i in enumerate(x for x in sentimentDataset['word']):
         if i == wordTweet:
             return next(islice((x for x in sentimentDataset['weight']), x, None))
+    return 0
 
 @lru_cache()
 def findWeightInf(wordTweet:str) -> float:
-     for x, i in enumerate(x for x in kataPenguatFile['words']):
+    for x, i in enumerate(x for x in kataPenguatFile['words']):
         if i == wordTweet:
             return next(islice((x for x in kataPenguatFile['weight']), x, None))
+    return 0
 
 def sentimentFinder(wordTweets:str) -> list:
     wordTweet = list(preprocessingTweet(wordTweets))
@@ -44,8 +46,8 @@ def sentimentFinder(wordTweets:str) -> list:
     return sentimentWeightList, sentimentInfList
 
 def sentimentCalc(args) -> float:
-    sentimentWeight = list(filter(None, args[0]))
-    sentimentInf = list(filter(None, args[1]))
+    sentimentWeight = list(args[0])
+    sentimentInf = list(args[1])
     if len(sentimentWeight) >= 1 and len(sentimentInf) == 0:
         yield sum(sentimentWeight)
     elif len(sentimentWeight) >= 1 and len(sentimentInf) >= 1:
@@ -65,15 +67,12 @@ def sentimentCSV(fileName:str) -> csv:
             writer.writerow({"original_tweet": line,"sentiment_result": next(sentimentCalc(sentimentFinder(line)))})
     
 def sentimentPlotSingleFile(fileName:str) -> plt:
-    try:
-        datasetResult = pandas.read_csv('data/datasetSource/sentimentAnalysis-result-{}.csv'.format(fileName))
-        seaborn.displot(datasetResult, x=datasetResult["sentiment_result"])
-        plt.title('Sebaran Data Sentiment {}'.format(fileName))
-        plt.xlabel('sentiment')
-        plt.show()
-    except Exception as e:
-        print(e)
-    
+    datasetResult = pandas.read_csv('data/datasetSource/sentimentAnalysis-result-{}.csv'.format(fileName))
+    seaborn.displot(datasetResult, x=datasetResult["sentiment_result"])
+    plt.title('Sebaran Data Sentiment {}'.format(fileName))
+    plt.xlabel('sentiment')
+    plt.show()
+
 if __name__ == "__main__":
     # nama file untuk hasil sentiment analysis
     sentimentCSV("test")
