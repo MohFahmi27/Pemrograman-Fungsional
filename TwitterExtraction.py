@@ -18,8 +18,8 @@ cleanDigitSym = lambda twitterResult: re.sub("(:)|(r‚Ä¶)|(rt|RT)|([0-9])", '
 cleanTags = lambda twitterResult: re.sub("&lt;/?.*?&gt;","&lt;&gt;", cleanDigitSym(twitterResult))
 cleanTweet = lambda twitterResult: re.sub("( +)", ' ', cleanTags(twitterResult).lstrip(' '))
 
-getData = lambda query, banyakTweet: (dict(created_at=x.created_at, username=x.user.screen_name, tweet=cleanTweet(x.full_text)) for x in tweepy.API(auth)\
-        .search(q=query, include_rts=False, lang="id", tweet_mode="extended", count=banyakTweet))
+getData = lambda query, banyakTweet: (dict(created_at=x.created_at, username=x.user.screen_name, tweet=cleanTweet(x.full_text)) 
+    for x in tweepy.API(auth).search(q=query, include_rts=False, lang="id", tweet_mode="extended", count=banyakTweet))
 
 def extractTwitter(nameFile:str, query:str, banyakTweet:int) -> csv:
     filePath = f"data/datasetSource/tweet-dataset-{nameFile}.csv"  
@@ -30,4 +30,8 @@ def extractTwitter(nameFile:str, query:str, banyakTweet:int) -> csv:
             executor.map(writer_csv.writerow, getData(query, banyakTweet))
     
 if __name__ == "__main__":
-    extractTwitter("test3", "COVID19 OR COVID-19 OR vaksin", 1000)
+    import time
+    time1 = time.perf_counter()
+    extractTwitter("covid", "COVID19 OR COVID-19 OR vaksin", 1000)
+    time2 = time.perf_counter()
+    print(f"waktu : {time2-time1}")
