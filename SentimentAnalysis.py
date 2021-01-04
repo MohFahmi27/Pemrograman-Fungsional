@@ -7,6 +7,7 @@ from functools import reduce, lru_cache
 import operator
 from nltk.corpus import stopwords
 import concurrent.futures
+from wordcloud import WordCloud
 
 sentimentDataset = pandas.read_csv('data/datasetAnalysis/lexicon-word-dataset.csv')
 kataPenguatFile = pandas.read_csv("data/datasetAnalysis/kata-keterangan-penguat.csv")
@@ -55,31 +56,34 @@ def sentimentCalc(args) -> float:
     else:
         return 0
 
-sentimentProcess = lambda dataset : (dict(original_tweet=x, 
-                                        sentiment_result=sentimentCalc(sentimentFinder(x, preprocessingTweet))) for x in dataset)
-
-def sentimentProcess2(dataset):
-    return dict(original_tweet=dataset, sentiment_result=sentimentCalc(sentimentFinder(dataset, preprocessingTweet)))
+sentimentProcess = lambda dataset : (dict(original_tweet=x, sentiment_result=sentimentCalc(sentimentFinder(x, preprocessingTweet))) 
+    for x in dataset)
 
 def sentimentCSV(fileName:str) -> csv:    
     tweetDataset = pandas.read_csv('data/datasetSource/tweet-dataset-{}.csv'.format(fileName))
     tweetDataset = tweetDataset.drop_duplicates(subset=['tweet'])
     tweetDataset = tweetDataset.reset_index(drop=True)
-    
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        result = executor.map(sentimentProcess2, (x for x in tweetDataset['tweet']))
 
     with open('data/datasetSource/sentimentAnalysis-result-{}.csv'.format(fileName),'w') as file:
         writer = csv.DictWriter(file, ["original_tweet", "sentiment_result"])
         writer.writeheader()
-        for x in result:
-            writer.writerow(x)
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            executor.map(writer.writerow, sentimentProcess(tweetDataset['tweet']))
     
 def sentimentPlotSingleFile(fileName:str) -> plt:
     datasetResult = pandas.read_csv('data/datasetSource/sentimentAnalysis-result-{}.csv'.format(fileName))
-    seaborn.displot(datasetResult, x=datasetResult["sentiment_result"])
+    seaborn.kdeplot(datasetResult["sentiment_result"], color='m', shade=True)
     plt.title('Sebaran Data Sentiment {}'.format(fileName))
     plt.xlabel('sentiment')
+    plt.show()
+
+def sentimentWordCloud(fileName:str) -> plt:
+    datasetResult = pandas.read_csv('data/datasetSource/sentimentAnalysis-result-{}.csv'.format(fileName))
+    wordcloud = WordCloud(width = 800, height = 800, background_color = 'black', max_words = 1000
+                      , min_font_size = 20).generate(str(datasetResult['original_tweet']))
+    plt.figure(figsize = (8,8), facecolor = None)
+    plt.imshow(wordcloud)
+    plt.axis('off')
     plt.show()
 
 if __name__ == "__main__":
@@ -89,6 +93,9 @@ if __name__ == "__main__":
     sentimentCSV("covid")
     time2 = time.perf_counter()
     print(f"waktu : {time2-time1}")
+    print(findWeightSentiment.cache_info())
+    print(findWeightInf.cache_info())
 
     # grafik untuk distribusi sentiment
     # sentimentPlotSingleFile("covid")
+    # sentimentWordCloud("covid")

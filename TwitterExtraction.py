@@ -23,9 +23,11 @@ getData = lambda query, banyakTweet: (dict(created_at=x.created_at, username=x.u
 
 def extractTwitter(nameFile:str, query:str, banyakTweet:int) -> csv:
     filePath = f"data/datasetSource/tweet-dataset-{nameFile}.csv"  
+
     with open(filePath, "a+" if os.path.exists(filePath) else "w") as file:
         writer_csv = csv.DictWriter(file, ["created_at", "username", "tweet"])
         True if file.mode == "a+" else writer_csv.writeheader()
+
         with concurrent.futures.ThreadPoolExecutor() as executor:
             executor.map(writer_csv.writerow, getData(query, banyakTweet))
     
