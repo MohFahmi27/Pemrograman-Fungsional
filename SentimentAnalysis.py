@@ -72,7 +72,7 @@ def sentimentCSV(fileName:str) -> csv:
     
 def sentimentPlotSingleFile(fileName:str) -> plt:
     datasetResult = pandas.read_csv('data/datasetSource/sentimentAnalysis-result-{}.csv'.format(fileName))
-    seaborn.kdeplot(datasetResult["sentiment_result"], color='m', shade=True)
+    seaborn.displot(datasetResult, x=datasetResult["sentiment_result"])
     plt.title('Sebaran Data Sentiment {}'.format(fileName))
     plt.xlabel('sentiment')
     plt.show()
@@ -93,8 +93,8 @@ if __name__ == "__main__":
     sentimentCSV("covid")
     time2 = time.perf_counter()
     print(f"waktu : {time2-time1}")
-    print(findWeightSentiment.cache_info())
-    print(findWeightInf.cache_info())
+    # print(findWeightSentiment.cache_info())
+    # print(findWeightInf.cache_info())
 
     # grafik untuk distribusi sentiment
     # sentimentPlotSingleFile("covid")
