@@ -16,10 +16,10 @@ cleanUrl = lambda twitterResult: re.sub(r'http\S+', '', twitterResult.lower())
 cleanTwitterSym = lambda twitterResult: re.sub("(@[A-Za-z0-9]+)|(#[A-Za-z0-9]+)|(r[^\x00-\x7F]+)|([^0-9A-Za-z])",' ', cleanUrl(twitterResult))
 cleanDigitSym = lambda twitterResult: re.sub("(:)|(r‚Ä¶)|(rt|RT)|([0-9])", '', cleanTwitterSym(twitterResult))
 cleanTags = lambda twitterResult: re.sub("&lt;/?.*?&gt;","&lt;&gt;", cleanDigitSym(twitterResult))
-cleanTweet = lambda twitterResult: re.sub("( +)", ' ', cleanTags(twitterResult).lstrip(' '))
+cleanTweet = lambda twitterResult: re.sub("( +)", ' ', cleanDigitSym(twitterResult).lstrip(' ')) # -> str
 
 getData = lambda query, banyakTweet: (dict(created_at=x.created_at, username=x.user.screen_name, tweet=cleanTweet(x.full_text)) 
-    for x in tweepy.API(auth).search(q=query, include_rts=False, lang="id", tweet_mode="extended", count=banyakTweet))
+    for x in tweepy.API(auth).search(q=query, include_rts=False, lang="id", tweet_mode="extended", count=banyakTweet)) # -> dict
 
 def extractTwitter(nameFile:str, query:str, banyakTweet:int) -> csv:
     filePath = f"data/datasetSource/tweet-dataset-{nameFile}.csv"  

@@ -50,7 +50,7 @@ def sentimentCalc(args) -> float:
     sentimentWeight = list(args[0])
     sentimentInf = list(args[1])
     if len(sentimentWeight) >= 1 and len(sentimentInf) == 0:
-        return sum(sentimentWeight)
+        return sum(sentimentWeight) 
     elif len(sentimentWeight) >= 1 and len(sentimentInf) >= 1:
         return reduce(operator.mul, list(map(lambda x : x + 1.0, sentimentInf))) * sum(sentimentWeight)
     else:
@@ -69,7 +69,7 @@ def sentimentCSV(fileName:str) -> csv:
         writer.writeheader()
         with concurrent.futures.ThreadPoolExecutor() as executor:
             executor.map(writer.writerow, sentimentProcess(tweetDataset['tweet']))
-    
+
 def sentimentPlotSingleFile(fileName:str) -> plt:
     datasetResult = pandas.read_csv('data/datasetSource/sentimentAnalysis-result-{}.csv'.format(fileName))
     seaborn.displot(datasetResult, x=datasetResult["sentiment_result"])
