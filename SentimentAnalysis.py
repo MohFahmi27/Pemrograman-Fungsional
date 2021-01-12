@@ -1,6 +1,7 @@
 import pandas
 import csv
 import seaborn
+import time
 import matplotlib.pyplot as plt
 from itertools import filterfalse, islice
 from functools import reduce, lru_cache
@@ -8,11 +9,13 @@ import operator
 from nltk.corpus import stopwords
 import concurrent.futures
 from wordcloud import WordCloud
+from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
 
 sentimentDataset = pandas.read_csv('data/datasetAnalysis/lexicon-word-dataset.csv')
 kataPenguatFile = pandas.read_csv("data/datasetAnalysis/kata-keterangan-penguat.csv")
 negasi = ["tidak", "tidaklah", "bukan", "bukanlah", "bukannya","ngga", "nggak", "enggak", "nggaknya", 
     "kagak", "gak"]
+stemmer = StemmerFactory().create_stemmer()
 
 preprocessingTweet = lambda wordTweets : filterfalse(lambda x: 
     True if (x in stopwords.words('indonesian') 
@@ -20,7 +23,7 @@ preprocessingTweet = lambda wordTweets : filterfalse(lambda x:
             and x not in negasi)         
         else False, wordTweets.split()) # -> itertools.filterfalse()
 
-@lru_cache(maxsize=350)
+@lru_cache(maxsize=2180)
 def findWeightSentiment(wordTweet:str) -> int:
     for x, i in enumerate(x for x in sentimentDataset['word']):
         if i == wordTweet:
@@ -34,10 +37,12 @@ def findWeightInf(wordTweet:str) -> float:
             return next(islice((x for x in kataPenguatFile['weight']), x, None))
     return 0
 
-def sentimentFinder(wordTweets:str, preprocessingFunc) -> list:
+def sentimentFinder(wordTweets:str, preprocessingFunc) -> list:    
+    cleanText = stemmer.stem(" ".join([x for x in preprocessingFunc(wordTweets)]))
     sentimentWeightList = []
     sentimentInfList = []
-    for x in list(preprocessingFunc(wordTweets)):
+    wordTweets = [x for x in cleanText.split()]
+    for x in wordTweets:
         if (wordTweets[wordTweets.index(x) - 1]) in negasi:
             sentimentWeightList.append(-1*findWeightSentiment(x))
         elif x in (x for x in kataPenguatFile['words']):
@@ -50,7 +55,7 @@ def sentimentCalc(args) -> float:
     sentimentWeight = list(args[0])
     sentimentInf = list(args[1])
     if len(sentimentWeight) >= 1 and len(sentimentInf) == 0:
-        return sum(sentimentWeight) 
+        return sum(sentimentWeight)
     elif len(sentimentWeight) >= 1 and len(sentimentInf) >= 1:
         return reduce(operator.mul, list(map(lambda x : x + 1.0, sentimentInf))) * sum(sentimentWeight)
     else:
@@ -87,15 +92,14 @@ def sentimentWordCloud(fileName:str) -> plt:
     plt.show()
 
 if __name__ == "__main__":
-    # nama file untuk hasil sentiment analysis
-    import time
+    # nama file untuk hasil sentiment analysis    
     time1 = time.perf_counter()
     sentimentCSV("covid")
     time2 = time.perf_counter()
     print(f"waktu : {time2-time1}")
-    # print(findWeightSentiment.cache_info())
-    # print(findWeightInf.cache_info())
+    print(findWeightSentiment.cache_info())
+    print(findWeightInf.cache_info())
 
     # grafik untuk distribusi sentiment
-    # sentimentPlotSingleFile("covid")
+    # sentimentPlotSingleFile("sriwijaya")
     # sentimentWordCloud("covid")
