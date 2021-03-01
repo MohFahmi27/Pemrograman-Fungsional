@@ -101,5 +101,5 @@ if __name__ == "__main__":
     print(findWeightInf.cache_info())
 
     # grafik untuk distribusi sentiment
-    # sentimentPlotSingleFile("sriwijaya")
-    # sentimentWordCloud("covid")
+    # sentimentPlotSingleFile("covid-2021")
+    # sentimentWordCloud("covid-2021")
