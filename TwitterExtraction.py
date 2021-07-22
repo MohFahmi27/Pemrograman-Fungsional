@@ -1,7 +1,7 @@
 import tweepy
 import csv
-from collections import namedtuple
 import os
+from collections import namedtuple
 import re
 import concurrent.futures
 
@@ -27,13 +27,12 @@ def extractTwitter(nameFile:str, query:str, banyakTweet:int) -> csv:
     with open(filePath, "a+" if os.path.exists(filePath) else "w") as file:
         writer_csv = csv.DictWriter(file, ["created_at", "username", "tweet"])
         True if file.mode == "a+" else writer_csv.writeheader()
-
         with concurrent.futures.ThreadPoolExecutor() as executor:
             executor.map(writer_csv.writerow, getData(query, banyakTweet))
-    
+
 if __name__ == "__main__":
     import time
     time1 = time.perf_counter()
-    extractTwitter("covid", "COVID19 OR COVID-19 OR vaksin OR (varian AND baru AND covid) OR corona OR (virus AND covid)", 100)
+    extractTwitter("covid4", "COVID19 OR COVID-19 OR vaksin OR (varian AND baru AND covid) OR corona OR (virus AND covid)", 10)
     time2 = time.perf_counter()
     print(f"waktu : {time2-time1}")

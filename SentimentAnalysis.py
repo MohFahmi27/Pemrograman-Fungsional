@@ -94,12 +94,12 @@ def sentimentWordCloud(fileName:str) -> plt:
 if __name__ == "__main__":
     # nama file untuk hasil sentiment analysis    
     time1 = time.perf_counter()
-    sentimentCSV("covid")
+    sentimentCSV("covid4")
     time2 = time.perf_counter()
     print(f"waktu : {time2-time1}")
     print(findWeightSentiment.cache_info())
-    print(findWeightInf.cache_info())
+    # print(findWeightInf.cache_info())
 
     # grafik untuk distribusi sentiment
-    # sentimentPlotSingleFile("sriwijaya")
-    # sentimentWordCloud("covid")
+    sentimentPlotSingleFile("covid4")
+    sentimentWordCloud("covid4")
