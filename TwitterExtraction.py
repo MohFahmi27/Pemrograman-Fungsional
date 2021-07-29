@@ -33,6 +33,6 @@ def extractTwitter(nameFile:str, query:str, banyakTweet:int) -> csv:
 if __name__ == "__main__":
     import time
     time1 = time.perf_counter()
-    extractTwitter("covid4", "COVID19 OR COVID-19 OR vaksin OR (varian AND baru AND covid) OR corona OR (virus AND covid)", 10)
+    extractTwitter("covid4", "COVID19 OR COVID-19 OR vaksin OR (varian AND baru AND covid) OR corona OR (virus AND covid)", 200)
     time2 = time.perf_counter()
     print(f"waktu : {time2-time1}")
